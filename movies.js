@@ -9,7 +9,7 @@ firebase.auth().onAuthStateChanged(async function (user) {
     // Signed out
     console.log('signed out')
     // Hide the movies when signed-out
-    document.querySelector('movies').classList.add('hidden')
+    document.querySelector('.movies').classList.add('hidden')
     // Initializes FirebaseUI Auth
     let ui = new firebaseui.auth.AuthUI(firebase.auth())
     // FirebaseUI configuration
@@ -50,6 +50,9 @@ firebase.auth().onAuthStateChanged(async function (user) {
     // listening to button click
     document.querySelector(`.movie-${movie.id}`).addEventListener('click', async function (event) {
       event.preventDefault()
+      let currentUser = firebase.auth().currentUser
+      console.log(`${currentUser.displayName} just watched ${movie.id}`);
+
       let movieElement = document.querySelector(`.movie-${movie.id}`)
       movieElement.classList.add('opacity-20')
       await db.collection('watched').doc(`${movie.id}`).set({})
