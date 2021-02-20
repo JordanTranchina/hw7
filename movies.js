@@ -1,6 +1,28 @@
-window.addEventListener('DOMContentLoaded', async function (event) {
+let db = firebase.firestore()
+
+
+
+firebase.auth().onAuthStateChanged(async function (user) {
+  if (user) {
+
+  } else {
+    // Signed out
+    console.log('signed out')
+    // Hide the movies when signed-out
+    document.querySelector('movies').classList.add('hidden')
+    // Initializes FirebaseUI Auth
+    let ui = new firebaseui.auth.AuthUI(firebase.auth())
+    // FirebaseUI configuration
+    let authUIConfig = {
+      signInOptions: [
+        firebase.auth.EmailAuthProvider.PROVIDER_ID
+      ],
+      signInSuccessUrl: 'movies.html'
+    }
+    // Starts FirebaseUI Auth
+    ui.start('.sign-in-or-sign-out', authUIConfig)
+  }
   // setting up firesbase and API
-  let db = firebase.firestore()
   let apiKey = '426eb0f90521d4c76fbc67a9acd43da6'
   let response = await fetch(`https://api.themoviedb.org/3/movie/now_playing?api_key=${apiKey}&language=en-US`)
   let json = await response.json()
