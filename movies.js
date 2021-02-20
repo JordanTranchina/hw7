@@ -1,4 +1,5 @@
 window.addEventListener('DOMContentLoaded', async function (event) {
+  // setting up firesbase and API
   let db = firebase.firestore()
   let apiKey = '426eb0f90521d4c76fbc67a9acd43da6'
   let response = await fetch(`https://api.themoviedb.org/3/movie/now_playing?api_key=${apiKey}&language=en-US`)
@@ -6,6 +7,7 @@ window.addEventListener('DOMContentLoaded', async function (event) {
   let movies = json.results
   console.log(movies)
 
+  // cycling through movies in API
   for (let i = 0; i < movies.length; i++) {
     let movie = movies[i]
     let docRef = await db.collection('watched').doc(`${movie.id}`).get()
@@ -15,6 +17,7 @@ window.addEventListener('DOMContentLoaded', async function (event) {
       opacityClass = 'opacity-20'
     }
 
+    // printing movie (inclusive of opacity)
     document.querySelector('.movies').insertAdjacentHTML('beforeend', `
       <div class="w-1/5 p-4 movie-${movie.id} ${opacityClass}">
         <img src="https://image.tmdb.org/t/p/w500${movie.poster_path}" class="w-full">
@@ -22,6 +25,7 @@ window.addEventListener('DOMContentLoaded', async function (event) {
       </div>
     `)
 
+    // listening to button click
     document.querySelector(`.movie-${movie.id}`).addEventListener('click', async function (event) {
       event.preventDefault()
       let movieElement = document.querySelector(`.movie-${movie.id}`)
@@ -33,13 +37,8 @@ window.addEventListener('DOMContentLoaded', async function (event) {
 
 // Goal:   Refactor the movies application from last week, so that it supports
 //         user login and each user can have their own watchlist.
+//         Look at instagram lab for inspiration 
 
-// Start:  Your starting point is one possible solution for last week's homework.
-
-// Step 1: Add your Firebase configuration to movies.html, along with the
-//         (provided) script tags for all necessary Firebase services – i.e. Firebase
-//         Auth, Firebase Cloud Firestore, and Firebase UI for Auth; also
-//         add the CSS file for FirebaseUI for Auth.
 // Step 2: Change the main event listener from DOMContentLoaded to 
 //         firebase.auth().onAuthStateChanged and include conditional logic 
 //         shows a login UI when signed, and the list of movies when signed
