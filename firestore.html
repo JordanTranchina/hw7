@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KIEI-451: Firebase</title>
+  <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet" type="text/css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.22.0/themes/prism.min.css" rel="stylesheet"
+    type="text/css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.22.0/plugins/line-numbers/prism-line-numbers.min.css"
+    rel="stylesheet" type="text/css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.22.0/prism.min.js"></script>
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.22.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+</head>
+
+<body class="p-8 line-numbers">
+  <div class="container mx-auto">
+    <h1 class="text-4xl">Storing and Retrieving Data with Firebase Cloud Firestore</h1>
+    <div class="mt-4 space-y-4">
+      <p>Firebase is a platform developed by Google for rapid development of web and mobile applications. Firebase consists of several products, each for its own use-case. In this course, we'll be using the database – called <strong>Cloud Firestore</strong> – and the <strong>Authentication</strong> product, which will be used to help us with user authentication and login.</p>
+
+      <p><em>Note: Firebase also contains a product called Realtime Database – this is essentially the older database product that is being replaced by Cloud Firestore – we won't be using this.</em></p>
+
+      <p>The goal of Firebase Cloud Firestore – or any database, for that matter – is to allow for fast and efficient storage (writing) and retrieval (querying) of data. Let's take a deep dive into how to do these things with Firebase Cloud Firestore.</p>
+
+      <h3 class="text-bold font-xl">Using Firebase in a Web Application</h3>
+      
+      <p>Everything in Firebase is accomplished using their provided Firebase Client SDK (software development kit). We can find a reference on how to use these libraries in the Firebase Console (<a href="https://console.firebase.google.com/" target="_blank" class="text-pink-500 underline">https://console.firebase.google.com/</a>):</p>
+
+      <ol class="list-decimal list-inside">
+        <li>Select a project</li>
+        <li>Go to the "gear" icon -> Project Settings</li>
+        <li>Under "Firebase SDK Snippet", select "CDN"</li>
+        <li>Copy-and-paste this configuration into an HTML page in our project, just before the end <span class="bg-orange-100 text-red-400 font-mono p-1">&lt;/body&gt;</span> tag.</li>
+        <li>Add the libraries we want to use, namely the libraries for Cloud Firestore and Authentcation</li>
+      </ol>
+
+      <p>In the end, the script we'll have in our HTML page will look something like this:</p>
+      
+      <pre class="m-0 p-0">
+        <code class="language-js">&lt;script src=&quot;https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js&quot;&gt;&lt;/script&gt;
+        
+        &lt;script src=&quot;https://www.gstatic.com/firebasejs/8.2.0/firebase-firestore.js&quot;&gt;&lt;/script&gt;
+        &lt;script src=&quot;https://www.gstatic.com/firebasejs/8.2.0/firebase-auth.js&quot;&gt;&lt;/script&gt;
+
+        &lt;script&gt;
+        // Your web app&#39;s Firebase configuration
+        var firebaseConfig = {
+          apiKey: [YOUR VALUE],
+          authDomain: [YOUR VALUE],
+          databaseURL: [YOUR VALUE],
+          projectId: [YOUR VALUE],
+          storageBucket: [YOUR VALUE],
+          messagingSenderId: [YOUR VALUE],
+          appId: [YOUR VALUE]
+        };
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        &lt;/script&gt;</code>
+      </pre>
+
+      <p>Of course, replace <span class="bg-orange-100 text-red-400 font-mono p-1">[YOUR VALUE]</span> with the values from your Firebase configuration. Adding this snippet to our code sets up Firebase and makes it ready to use. The best part is that we can now fully access our Cloud Firestore database and other Firebase services – directly from our JavaScript code. The  variable <span class="bg-orange-100 text-red-400 font-mono p-1">firebase</span> is what we can use to access our Firebase instance. The next thing we'll want to do is to set a variable that allows us to access our Cloud Firestore database:</p>
+
+      <pre class="m-0 p-0">
+        <code class="language-js">let db = firebase.firestore()</code>
+      </pre>
+
+      <p>Now, we can use <span class="bg-orange-100 text-red-400 font-mono p-1">db</span> to perform operations on our Cloud Firestore database.</p>
+      
+      <h3 class="font-bold text-2xl">Key Concepts</h3>
+
+      <p>Firebase Cloud Firestore is a <em>document database</em> – sometimes known as a <em>NoSQL database</em>. There are other document databases out there like MongoDB, Amazon DocumentDB; what they all have in common is that they provide a direct interface from the programming language being used (in our case, JavaScript) to the records (documents) contained in the database – rather than requiring SQL for communication like a <em>relational database system (RDBMS)</em> does. The vernacular is a little bit different too – instead of <em>rows</em> of data being stored in database <em>tables</em>, document database systems like Firebase store data in <em>documents</em>. Multiple documents of the same type are stored in <em>collections</em>.</p>
+      
+      <h3 class="font-bold text-2xl">Reading Data</h3>
+      
+      <p>In almost all databases, we typically want to retrieve data in one of four ways:</p>
+      
+      <ol class="list-decimal list-inside">
+        <li>Retrieve one document, if we know the unique identifier (ID) of that document</li>
+        <li>Retrieve all documents in a collection</li>
+        <li>Retrieve a subset of all documents in a collection, filtered on some criteria</li>
+        <li>Put the resulting documents in a specific order</li>
+      </ol>
+      
+      <h3 class="font-bold text-xl">Retrieve One Document</h3>
+      
+      <pre class="m-0 p-0">
+        <code class="language-js">let docRef = await db.collection('items').doc('abcdef').get() // where 'abcdef' is the ID of an existing document in the 'items' collection
+        
+        let item = doc.data()
+        
+        item.userName // => 'brian'</code>
+      </pre>
+
+      <p>Here, we're using the <span class="bg-orange-100 text-red-400 font-mono p-1">.doc()</span> method, passing it a document ID, to retrieve an existing record from our database. It's a lot like a <span class="bg-orange-100 text-red-400 font-mono p-1">fetch</span>, in that we must use the <span class="bg-orange-100 text-red-400 font-mono p-1">await</span> keyword to make this call, so that our code waits for the response from Firebase before continuing. The next part is a little strange, but we'll quickly get used to it – the call to Firebase returns a <em>reference to a document</em>, not the document itself. In order to read the document into a plain JavaScript object, we use the <span class="bg-orange-100 text-red-400 font-mono p-1">.data()</span> method on the document reference.</p>
+
+      <p class="bg-yellow-100"><strong>Watch out!</strong> The value passed to the <span class="bg-orange-100 text-red-400 font-mono p-1">.doc()</span> method MUST be a string. A common mistake is passing a numeric ID as an Integer.</p>
+      
+      <h3 class="font-bold text-xl">Retrieve All Documents in a Collection</h3>
+      
+      <pre class="m-0 p-0">
+        <code class="language-js">let querySnapshot = await db.collection('items').get()
+        
+        querySnapshot.size // => 3
+        
+        let items = querySnapshot.docs
+
+        for (let i=0; i&lt;items.length; i++) {
+          let item = items[i].data() // each member of the docs Array is a reference, so use .data() to get it into an Object
+          item.name // =&gt; e.g. &#39;grapes&#39;
+        }</code>
+      </pre>
+      
+      <p>Here, we're using the same code as we used to get a specific record, but we're omitting the <span class="bg-orange-100 text-red-400 font-mono p-1">.doc()</span> method. When we omit a request for a specific document, we get back a <em>query snapshot</em> from Firebase. We can ask a query snapshot for its <span class="bg-orange-100 text-red-400 font-mono p-1">size</span>, which will tell us the number of documents that are returned. And we can ask a query snapshot for its <span class="bg-orange-100 text-red-400 font-mono p-1">docs</span>, which is an Array of document references. As in the first example, we must call <span class="bg-orange-100 text-red-400 font-mono p-1">.data()</span> on each reference, in order to get the actual data in Object format, so we can work with it.</p>
+
+      <h3 class="font-bold text-xl">Retrieve a Subset of Documents</h3>
+      
+      <pre class="m-0 p-0">
+        <code class="language-js">let querySnapshot = await db.collection('items').where('department', '==', 'produce').get()
+        
+        querySnapshot.size // => 2
+        
+        let items = querySnapshot.docs
+
+        for (let i=0; i&lt;items.length; i++) {
+          let item = items[i].data() // each member of the docs Array is a reference, so use .data() to get it into an Object
+          item.name // =&gt; e.g. &#39;grapes&#39;
+        }</code>
+      </pre>
+
+      <p>Here, we're performing the same steps as before, with the addition of a <em>filter</em> which limits the results to only those in the <em>produce</em> department.</p>
+
+      <h3 class="font-bold text-xl">Ordering Documents</h3>
+      
+      <pre class="m-0 p-0">
+        <code class="language-js">let querySnapshot = await db.collection('items').orderBy('name').get()
+        
+        let items = querySnapshot.docs
+
+        for (let i=0; i&lt;items.length; i++) {
+          let item = items[i].data() // each member of the docs Array is a reference, so use .data() to get it into an Object
+          item.name // =&gt; e.g. &#39;grapes&#39;
+        }</code>
+      </pre>
+
+      <p>This code will get all documents in the <em>items</em> collection, ordered by the <em>name</em> field.</p>
+
+      <h3 class="font-bold text-2xl">Writing Data</h3>
+
+      <p>There are a variety of ways to write documents to Cloud Firestore, but in all likelihood, you'll simply want to create (add) a new document, update an existing document, or delete an existing document. Here's how you do it:</p>
+
+      <h3 class="font-bold text-xl">Add a New Document</h3>
+
+      <pre class="m-0 p-0">
+        <code class="language-js">let docRef = await db.collection('items').add({
+          name: 'yogurt',
+          department: 'dairy',
+          quantity: 4
+        })
+      
+        docRef.id // => the newly created document's ID</code>
+      </pre>
+
+      <h3 class="font-bold text-xl">Update an Existing Document</h3>
+
+      <pre class="m-0 p-0">
+        <code class="language-js">await db.collection('items').doc('abcdef').update({
+          name: 'greek yogurt'
+        }) // where 'abcdef' is the ID of an existing document in the 'items' collection</code>
+      </pre>
+
+      <h3 class="font-bold text-xl">Set (create if doesn't exist, update if it does) an Existing Document</h3>
+
+      <pre class="m-0 p-0">
+        <code class="language-js">await db.collection('items').doc('abcdef').set({
+          name: 'greek yogurt'
+        }) // where 'abcdef' is the ID of a new or existing document in the 'items' collection</code>
+      </pre>
+
+      <h3 class="font-bold text-xl">Delete a Document</h3>
+
+      <pre class="m-0 p-0">
+        <code class="language-js">await db.collection('items').doc('abcdef').delete() // where 'abcdef' is the ID of an existing document in the 'items' collection</code>
+      </pre>
+
+      <h3 class="font-bold text-xl">Common Use-Cases: Timestamp and Incrementing Values</h3>
+
+      <p>There are a few functions that Cloud Firestore provides for common use cases. Two things we'll commonly see in web applications are timestamping (i.e. capturing the time a document was created or updated) and incrementing a numeric value (think "likes" on a post, or "quantity" on an order line item). Here is a simple example of using these functions:</p>
+
+      <pre class="m-0 p-0">
+        <code class="language-js">let docRef = await db.collection('items').add({
+          name: 'yogurt',
+          department: 'dairy',
+          quantity: 4,
+          created: firebase.firestore.FieldValue.serverTimestamp()
+        })
+      
+        await docRef.update({
+          quantity: firebase.firestore.FieldValue.increment(10),
+          updated: firebase.firestore.FieldValue.serverTimestamp()
+        })</code>
+      </pre>
+
+      <p>The first line will create a new item – just as we've done before – and will add a timestamp in the <span class="bg-orange-100 text-red-400 font-mono p-1">created</span> field in the document. This is commonly done to keep track of the chronological order of things, for example, when a photo was posted or when an item was added to a shopping cart.</p>
+
+      <p>The second line updates the newly created document. Here, we're setting the value of <span class="bg-orange-100 text-red-400 font-mono p-1">updated</span> to the server timestamp, once again. And we're asking Cloud Firestore to increment the value of <span class="bg-orange-100 text-red-400 font-mono p-1">quantity</span> by 10.</p>
+    </div>
+
+</body>
+
+</html>

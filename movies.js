@@ -1,10 +1,25 @@
 let db = firebase.firestore()
 
-
-
 firebase.auth().onAuthStateChanged(async function (user) {
   if (user) {
-
+    // Signed in
+    console.log(`signed in as ${user.email}`)
+    // Push user metadata to firebase
+    db.collection('users').doc(user.uid).set({
+      name: user.displayName,
+      email: user.email,
+      userId: user.uid
+    })
+    // Sign-out button
+    document.querySelector('.sign-in-or-sign-out').innerHTML =
+      `
+        <button class="text-pink-500 underline sign-out">Sign Out</button>
+      `
+    document.querySelector('.sign-out').addEventListener('click', function (event) {
+      console.log('sign out clicked')
+      firebase.auth().signOut()
+      document.location.href = 'movies.html'
+    })
   } else {
     // Signed out
     console.log('signed out')
@@ -66,7 +81,7 @@ firebase.auth().onAuthStateChanged(async function (user) {
 
 // Step 2: Change the main event listener from DOMContentLoaded to 
 //         firebase.auth().onAuthStateChanged and include conditional logic 
-//         shows a login UI when signed, and the list of movies when signed
+//         shows a login UI when signed out, and the list of movies when signed
 //         in. Use the provided .sign-in-or-sign-out element to show the
 //         login UI. If a user is signed-in, display a message like "Signed 
 //         in as <name>" along with a link to "Sign out". Ensure that a document
