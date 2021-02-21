@@ -31,7 +31,7 @@ firebase.auth().onAuthStateChanged(async function (user) {
     })
 
     //call print function
-    renderMovie(movies)
+    printMovie(movies)
 
   } else {
     // Signed out
@@ -52,17 +52,19 @@ firebase.auth().onAuthStateChanged(async function (user) {
   }
 })
 
-async function renderMovie(movies) {
+async function printMovie(movies) {
   // cycling through movies in API
   for (let i = 0; i < movies.length; i++) {
     let movie = movies[i]
     let docRef = await db.collection('watched').doc(`${movie.id}`).get()
     let watchedMovie = docRef.data()
     let opacityClass = ''
+    // changing opacity based on watched status
     if (watchedMovie) {
       opacityClass = 'opacity-20'
     }
-    // printing
+
+    // printing movies
     document.querySelector('.movies').insertAdjacentHTML('beforeend',
       `
         <div class="w-1/5 p-4 movie-${movie.id} ${opacityClass}">
@@ -72,7 +74,7 @@ async function renderMovie(movies) {
       `
     )
 
-    // listening
+    // listening to click
     document.querySelector(`.movie-${movie.id}`).addEventListener('click', async function (event) {
       event.preventDefault()
       let currentUser = firebase.auth().currentUser
