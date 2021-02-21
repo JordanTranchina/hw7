@@ -56,10 +56,11 @@ async function printMovie(movies) {
   // cycling through movies in API
   for (let i = 0; i < movies.length; i++) {
     let movie = movies[i]
-    let docRef = await db.collection('watched').doc(`${movie.id}`).get()
+    let currentUser = firebase.auth().currentUser
+    let docRef = await db.collection('watched').doc(`${movie.id}-${currentUser.uid}`).get()
     let watchedMovie = docRef.data()
     let opacityClass = ''
-    // changing opacity based on watched status
+    // changing opacity based on watched status in firebase
     if (watchedMovie) {
       opacityClass = 'opacity-20'
     }
@@ -77,12 +78,22 @@ async function printMovie(movies) {
     // listening to click
     document.querySelector(`.movie-${movie.id}`).addEventListener('click', async function (event) {
       event.preventDefault()
+
+      // setting current user to firebase user
       let currentUser = firebase.auth().currentUser
       console.log(`${currentUser.email} just watched ${movie.id}`);
 
+      // changing opacity based on click
       let movieElement = document.querySelector(`.movie-${movie.id}`)
       movieElement.classList.add('opacity-20')
-      await db.collection('watched').doc(`${movie.id}`).set({})
+
+      // pushing metadata of clicked movie and logged-in user to firebase
+      await db.collection('watched').doc(`${movie.id}-${currentUser.uid}`).set({
+        movieId: movie.id,
+        movieTitle: movie.original_title,
+        watcherId: currentUser.uid,
+        watcherEmail: currentUser.email
+      })
     })
   }
 
