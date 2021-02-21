@@ -93,14 +93,6 @@ async function printMovie(movies) {
 //         user login and each user can have their own watchlist.
 //         Look at instagram lab for inspiration 
 
-// Step 2: Change the main event listener from DOMContentLoaded to 
-//         firebase.auth().onAuthStateChanged and include conditional logic 
-//         shows a login UI when signed out, and the list of movies when signed
-//         in. Use the provided .sign-in-or-sign-out element to show the
-//         login UI. If a user is signed-in, display a message like "Signed 
-//         in as <name>" along with a link to "Sign out". Ensure that a document
-//         is set in the "users" collection for each user that signs in to 
-//         your application.
 // Step 3: Setting the TMDB movie ID as the document ID on your "watched" collection
 //         will no longer work. The document ID should now be a combination of the
 //         TMDB movie ID and the user ID indicating which user has watched. 
