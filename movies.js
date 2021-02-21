@@ -1,15 +1,24 @@
 let db = firebase.firestore()
 
 firebase.auth().onAuthStateChanged(async function (user) {
+  // setting up firesbase and API
+  let apiKey = '426eb0f90521d4c76fbc67a9acd43da6'
+  let response = await fetch(`https://api.themoviedb.org/3/movie/now_playing?api_key=${apiKey}&language=en-US`)
+  let json = await response.json()
+  let movies = json.results
+  console.log(movies)
+
   if (user) {
     // Signed in
     console.log(`signed in as ${user.email}`)
+
     // Push user metadata to firebase
     db.collection('users').doc(user.uid).set({
       name: user.displayName,
       email: user.email,
       userId: user.uid
     })
+
     // Sign-out button
     document.querySelector('.sign-in-or-sign-out').innerHTML =
       `
@@ -20,6 +29,10 @@ firebase.auth().onAuthStateChanged(async function (user) {
       firebase.auth().signOut()
       document.location.href = 'movies.html'
     })
+
+    //call print function
+    renderMovie(movies)
+
   } else {
     // Signed out
     console.log('signed out')
@@ -37,13 +50,9 @@ firebase.auth().onAuthStateChanged(async function (user) {
     // Starts FirebaseUI Auth
     ui.start('.sign-in-or-sign-out', authUIConfig)
   }
-  // setting up firesbase and API
-  let apiKey = '426eb0f90521d4c76fbc67a9acd43da6'
-  let response = await fetch(`https://api.themoviedb.org/3/movie/now_playing?api_key=${apiKey}&language=en-US`)
-  let json = await response.json()
-  let movies = json.results
-  console.log(movies)
+})
 
+async function renderMovie(movies) {
   // cycling through movies in API
   for (let i = 0; i < movies.length; i++) {
     let movie = movies[i]
@@ -53,27 +62,30 @@ firebase.auth().onAuthStateChanged(async function (user) {
     if (watchedMovie) {
       opacityClass = 'opacity-20'
     }
+    // printing
+    document.querySelector('.movies').insertAdjacentHTML('beforeend',
+      `
+        <div class="w-1/5 p-4 movie-${movie.id} ${opacityClass}">
+          <img src="https://image.tmdb.org/t/p/w500${movie.poster_path}" class="w-full">
+          <a href="#" class="watched-button block text-center text-white bg-green-500 mt-4 px-4 py-2 rounded">I've watched this!</a>
+        </div>
+      `
+    )
 
-    // printing movie (inclusive of opacity)
-    document.querySelector('.movies').insertAdjacentHTML('beforeend', `
-      <div class="w-1/5 p-4 movie-${movie.id} ${opacityClass}">
-        <img src="https://image.tmdb.org/t/p/w500${movie.poster_path}" class="w-full">
-        <a href="#" class="watched-button block text-center text-white bg-green-500 mt-4 px-4 py-2 rounded">I've watched this!</a>
-      </div>
-    `)
-
-    // listening to button click
+    // listening
     document.querySelector(`.movie-${movie.id}`).addEventListener('click', async function (event) {
       event.preventDefault()
       let currentUser = firebase.auth().currentUser
-      console.log(`${currentUser.displayName} just watched ${movie.id}`);
+      console.log(`${currentUser.email} just watched ${movie.id}`);
 
       let movieElement = document.querySelector(`.movie-${movie.id}`)
       movieElement.classList.add('opacity-20')
       await db.collection('watched').doc(`${movie.id}`).set({})
     })
   }
-})
+
+
+}
 
 // Goal:   Refactor the movies application from last week, so that it supports
 //         user login and each user can have their own watchlist.
